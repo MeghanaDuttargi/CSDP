@@ -1,0 +1,194 @@
+  Objective:
+
+To scan a Docker image for security vulnerabilities, apply necessary fixes, ensure the container runs as a non-root user, and configure Kubernetes NetworkPolicy to isolate traffic between namespaces.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Tools Used:
+
+* Docker
+* Trivy (Vulnerability Scanner)
+* Kubernetes (Minikube)
+* Kali Linux OS
+
+--------------------------------------------------------------------------------------------------
+
+Part A: Docker Image Security
+
+Step 1: Install Docker**
+
+	Open terminal and execute:
+
+
+	- sudo apt update
+	- sudo apt install docker.io -y
+	- sudo systemctl start docker
+	- sudo systemctl enable docker
+--------------------------------------------------------------------------------------------
+
+	Verify Docker installation:
+
+
+	- docker --version
+
+
+----------------------------------------------------------------------------------------------
+
+Step 2: Install Trivy**
+
+
+	- sudo apt install wget apt-transport-https gnupg lsb-release -y
+	- wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+	- echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
+	- sudo apt update
+	- sudo apt install trivy -y
+```'''''''''''''''''''''''''''''''''''''''''''''
+
+Verify Trivy installation:
+
+
+	- trivy --version
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Step 3: Scan Docker Image**
+
+
+	- docker pull nginx:latest
+	- trivy image nginx:latest
+```
+
+Trivy will list discovered vulnerabilities (CVEs).
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Step 4: Secure the Docker Image**
+
+Create a folder and Dockerfile:
+
+
+	- mkdir secure-nginx && cd secure-nginx
+	- nano Dockerfile
+```
+
+Paste this content into Dockerfile:
+
+```Dockerfile''''''''''''''''''''''''''''
+	FROM nginx:alpine
+	RUN apk update && apk upgrade
+	RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+	USER appuser
+	EXPOSE 80
+	CMD ["nginx", "-g", "daemon off;"]
+```''''''''''''''''''''''''''''''''''''''''''
+
+Save and exit (Ctrl+O, Enter, Ctrl+X).
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Step 5: Build and Run the Secure Image**
+
+
+	- docker build -t secure-nginx .
+	- docker run -d -p 8080:80 secure-nginx
+```
+
+Verify with:
+
+```bash
+	- curl http://localhost:8080
+```
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Part B: Kubernetes NetworkPolicy**
+
+Step 1: Install Minikube**
+
+
+	- curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb
+	- sudo dpkg -i minikube_latest_amd64.deb
+
+
+Start Minikube:
+
+
+	- minikube start --driver=docker
+```'''''''''''''''''''''''''''''''''''''''''
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Step 2: Create Namespaces and Deployments**
+
+
+	- kubectl create namespace team-a
+	- kubectl create namespace team-b
+
+	- kubectl run nginx-a --image=nginx --namespace=team-a
+	- kubectl run nginx-b --image=nginx --namespace=team-b
+``'''''''''
+
+Verify:
+
+```bash
+	- kubectl get pods -n team-a
+	- kubectl get pods -n team-b
+```
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Step 3: Apply Network Policy**
+
+Create the network policy file:
+
+```bash
+	- nano network-policy.yaml
+```
+
+Paste:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-cross-namespace
+  namespace: team-a
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: team-a
+```''''''''''''''''''''''''''''''''''''
+
+Label the namespace:
+
+```bash
+	- kubectl label namespace team-a name=team-a
+```
+
+Apply the policy:
+
+```bash
+	- kubectl apply -f network-policy.yaml
+```
+
+Check applied policy:
+
+```bash
+	- kubectl get networkpolicy -n team-a
+```''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+---
+
+### **Conclusion:**
+
+We successfully:
+
+* Installed and configured Docker and Trivy.
+* Scanned and secured a Docker image.
+* Ensured the container runs as a non-root user.
+* Deployed applications in Kubernetes namespaces.
+* Applied NetworkPolicy to restrict cross-namespace traffic, thus improving container isolation and security.
