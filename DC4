@@ -1,0 +1,32 @@
+DC4
+
+1. sudo docker pull nigga4059/dc4-qemu
+
+2. If it's your first time:   
+   - sudo docker run -it --privileged -p 80:80 --name dc4_container nigga4059/dc4-qemu
+   If the container already exists, just start it:  
+   - sudo docker start -ai dc4_container
+
+3. Get the IP of the Container Open a new terminal:  
+   - sudo docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' dc4_container
+
+4. copy the Ip you get there
+
+5. open burp suite, open browser in that in proxy and paste the copied ip
+
+6. turn on intercept in proxy and Submit a fake login like admin:admin
+
+7. forward it in the proxy and then send the post thing to the intruder
+
+8. go to intruder and then add the password admin 
+
+9. add the payloads , the wordlist then click on start attack
+
+10. happy is the password. select happy in response see the pretty and render that's it.
+
+
+AWS
+
+1. login aws accnt
+	Account id – rsanjithraj@gmail.com 
+	Password - ZTX8(i<L?XWv9p#
