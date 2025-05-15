@@ -43,3 +43,11 @@ AWS
               somallikruthi@gmail.com
    pswd -     ).u?E?,mJ,3h3,H
 	      
+steps: 
+1. login in aws 
+2. user -> create user -> add permission
+3. open created user -> security credentials -> copy url -> enable console -> get the pswd -> login that url 
+4. all services -> IAM 
+s3
+5. open policies ->create policies ->choose a service ->s3 -> all -> all ->create next next
+6. open user ->attach policies ->add permission ->customer managed ->s3 ->add permission
